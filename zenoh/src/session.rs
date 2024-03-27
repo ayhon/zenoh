@@ -43,6 +43,7 @@ use crate::Selector;
 use crate::Value;
 use async_std::task;
 use log::{error, trace, warn};
+use zenoh_config::WhatAmI;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::convert::TryInto;
@@ -826,8 +827,10 @@ impl Session {
                     .await;
                     match runtime.start().await {
                         Ok(()) => {
-                            // Workaround for the declare_and_shoot problem
-                            task::sleep(Duration::from_millis(*API_OPEN_SESSION_DELAY)).await;
+                            if runtime.whatami() != WhatAmI::Client {
+                                // Workaround for the declare_and_shoot problem
+                                task::sleep(Duration::from_millis(*API_OPEN_SESSION_DELAY)).await;
+                            }
                             Ok(session)
                         }
                         Err(err) => Err(err),
